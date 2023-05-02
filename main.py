@@ -23,12 +23,23 @@ class Urls(db.Model):
         self.short = short
 
 
+def shorten_url():
+    return "abcd"
+
+
 @app.route("/", methods=["POST", "GET"])
 def shortener():
     if request.method == "POST":
         url_received = request.form["long_url"]
-        print(url_received)
-        return url_received
+        found_url = Urls.query.filter_by(long=url_received).first()
+        if found_url:
+            return f"{found_url.short}"
+        else:
+            short_url = shorten_url()
+            new_url = Urls(url_received, short_url)
+            db.session.add(new_url)
+            db.session.commit()
+            return short_url
     else:
         return render_template("index.html")
 

@@ -1,7 +1,9 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, flash, url_for
 from flask_sqlalchemy import SQLAlchemy
 from credentials import secret_key
 import os
+import string
+import random
 
 
 app = Flask(__name__)
@@ -24,7 +26,13 @@ class Urls(db.Model):
 
 
 def shorten_url():
-    return "abcd"
+    letters = string.ascii_letters
+    while True:
+        rand_letters = random.choices(letters, k=4)
+        rand_letters = "".join(rand_letters)
+        short_url = Urls.query.filter_by(short=rand_letters).first()
+        if not short_url:
+            return rand_letters
 
 
 @app.route("/", methods=["POST", "GET"])
@@ -33,15 +41,19 @@ def shortener():
         url_received = request.form["long_url"]
         found_url = Urls.query.filter_by(long=url_received).first()
         if found_url:
-            return f"{found_url.short}"
+            flash(f"http://127.0.0.1:5000/{found_url.short}", "success")
+            return redirect(url_for("shortener"))
         else:
             short_url = shorten_url()
             new_url = Urls(url_received, short_url)
             db.session.add(new_url)
             db.session.commit()
-            return short_url
+            flash(f"http://127.0.0.1:5000/{short_url}", "success")
+            return redirect(url_for("shortener"))
+
     else:
-        return render_template("index.html")
+        return render_template("shortener.html")
+
 
 
 if __name__ == "__main__":

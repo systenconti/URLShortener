@@ -53,7 +53,14 @@ def shortener():
 
     else:
         return render_template("shortener.html")
-
+    
+@app.route('/<short_url>')
+def redirection(short_url):
+    long_url = Urls.query.filter_by(short=short_url).first()
+    if long_url:
+        return redirect(long_url.long)
+    else:
+        return "<h1>Url doesn't exist</h1>"
 
 
 if __name__ == "__main__":
